@@ -1,13 +1,19 @@
--- [[ QeatHUB v1.0 - Roblox Executor Script ]] --
+-- [[ QeatHUB v1.0 - Mobil Delta Özel Sürüm ]] --
 -- Tema: Black & Yellow (Hacker Style)
--- Geliştirici: Qeat Developer
 
 local Players = game:Service("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:Service("RunService")
 local UserInputService = game:Service("UserInputService")
 local TweenService = game:Service("TweenService")
-local HttpService = game:Service("HttpService")
+
+-- Executor'ın PlayerGui'sine güvenli erişim
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Eğer eski QeatHUB varsa temizle (Çakışmayı önlemek için)
+if PlayerGui:FindFirstChild("QeatHUB") then
+    PlayerGui.QeatHUB:Destroy()
+end
 
 -- [[ ANA GUI OLUŞTURMA ]] --
 local QeatHUB = Instance.new("ScreenGui")
@@ -19,12 +25,12 @@ local MinimizeBtn = Instance.new("TextButton")
 local Sidebar = Instance.new("Frame")
 local Container = Instance.new("Frame")
 
--- GUI Ayarları
 QeatHUB.Name = "QeatHUB"
-QeatHUB.Parent = game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
+QeatHUB.Parent = PlayerGui
 QeatHUB.ResetOnSpawn = false
+QeatHUB.DisplayOrder = 99999 -- En üst katmanda görünmesi için
 
--- Sürükleme Sistemi (Mobil & PC Uyumlu)
+-- Geliştirilmiş Mobil Sürükleme Sistemi (Drag)
 local function makeDraggable(frame, dragHandle)
     local dragging, dragInput, dragStart, startPos
     dragHandle.InputBegan:Connect(function(input)
@@ -57,56 +63,63 @@ MainPanel.Name = "MainPanel"
 MainPanel.Parent = QeatHUB
 MainPanel.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
 MainPanel.BorderSizePixel = 2
-MainPanel.BorderColor3 = Color3.fromRGB(255, 215, 0) -- Sarı Sınır
-MainPanel.Position = UDim2.new(0.3, 0, 0.25, 0)
+MainPanel.BorderColor3 = Color3.fromRGB(255, 215, 0) -- Sarı
+MainPanel.Position = UDim2.new(0.5, -250, 0.5, -160) -- Ekranın tam ortasında açılır
 MainPanel.Size = UDim2.new(0, 500, 0, 320)
-makeDraggable(MainPanel, TopBar)
+MainPanel.ZIndex = 5
 
 -- Üst Bar
 TopBar.Name = "TopBar"
 TopBar.Parent = MainPanel
 TopBar.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 TopBar.Size = UDim2.new(1, 0, 0, 35)
+TopBar.ZIndex = 6
+makeDraggable(MainPanel, TopBar)
 
 Title.Parent = TopBar
 Title.Text = "  QeatHUB v1.0"
 Title.TextColor3 = Color3.fromRGB(255, 215, 0)
-Title.TextSize = 18
+Title.TextSize = 16
 Title.Font = Enum.Font.Code
-Title.Size = UDim2.new(0.7, 0, 1, 0)
+Title.Size = UDim2.new(0.6, 0, 1, 0)
 Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.ZIndex = 6
 
 -- Kapatma Butonu
 CloseBtn.Parent = TopBar
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 0, 0)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-CloseBtn.Position = UDim2.new(0.93, 0, 0.1, 0)
+CloseBtn.Position = UDim2.new(0.92, 0, 0.1, 0)
 CloseBtn.Size = UDim2.new(0, 28, 0, 28)
 CloseBtn.Font = Enum.Font.Code
+CloseBtn.ZIndex = 7
 
 -- Küçültme Butonu (💛)
 MinimizeBtn.Parent = TopBar
 MinimizeBtn.Text = "💛"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
 MinimizeBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-MinimizeBtn.Position = UDim2.new(0.85, 0, 0.1, 0)
+MinimizeBtn.Position = UDim2.new(0.83, 0, 0.1, 0)
 MinimizeBtn.Size = UDim2.new(0, 28, 0, 28)
 MinimizeBtn.Font = Enum.Font.Code
+MinimizeBtn.ZIndex = 7
 
 -- Sol Menü (Kategoriler)
 Sidebar.Parent = MainPanel
 Sidebar.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 Sidebar.Position = UDim2.new(0, 0, 0, 35)
 Sidebar.Size = UDim2.new(0, 120, 1, -35)
+Sidebar.ZIndex = 5
 
 -- İçerik Alanı
 Container.Parent = MainPanel
 Container.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Container.Position = UDim2.new(0, 120, 0, 35)
 Container.Size = UDim2.new(1, -120, 1, -35)
+Container.ZIndex = 5
 
--- [[ KATEGORİ YÖNETİMİ ]] --
+-- [[ KATEGORİ SİSTEMİ ]] --
 local pages = {}
 local function createPage(name)
     local page = Instance.new("ScrollingFrame")
@@ -115,8 +128,9 @@ local function createPage(name)
     page.Size = UDim2.new(1, 0, 1, 0)
     page.BackgroundTransparency = 1
     page.Visible = false
-    page.CanvasSize = UDim2.new(0, 0, 2, 0)
+    page.CanvasSize = UDim2.new(0, 0, 1.5, 0)
     page.ScrollBarThickness = 4
+    page.ZIndex = 6
     
     local layout = Instance.new("UIListLayout")
     layout.Parent = page
@@ -136,6 +150,7 @@ local function createTabButton(name, order)
     btn.TextColor3 = Color3.fromRGB(200, 200, 200)
     btn.Font = Enum.Font.SourceSansBold
     btn.TextSize = 14
+    btn.ZIndex = 6
     
     btn.MouseButton1Click:Connect(function()
         for k, p in pairs(pages) do p.Visible = false end
@@ -147,7 +162,6 @@ local function createTabButton(name, order)
     end)
 end
 
--- Sayfaları Oluştur
 local combatPage = createPage("Combat")
 local playerPage = createPage("Player")
 local worldPage = createPage("World")
@@ -157,9 +171,9 @@ createTabButton("Combat", 1)
 createTabButton("Player", 2)
 createTabButton("World", 3)
 createTabButton("System", 4)
-pages["Combat"].Visible = true -- İlk açılış sayfası
+pages["Combat"].Visible = true
 
--- [[ UI ELEMENT FABRİKASI ]] --
+-- [[ UI FABRİKASI ]] --
 local function createToggle(parent, text, callback)
     local frame = Instance.new("Frame")
     frame.Size = UDim2.new(0.95, 0, 0, 35)
@@ -167,24 +181,26 @@ local function createToggle(parent, text, callback)
     frame.Parent = parent
     
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.7, 0, 1, 0)
+    label.Size = UDim2.new(0.65, 0, 1, 0)
     label.Text = "  " .. text
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Font = Enum.Font.SourceSans
-    label.TextSize = 16
+    label.TextSize = 15
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.BackgroundTransparency = 1
     label.Parent = frame
+    label.ZIndex = 7
     
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 50, 0, 25)
-    btn.Position = UDim2.new(0.75, 0, 0.15, 0)
+    btn.Size = UDim2.new(0, 60, 0, 25)
+    btn.Position = UDim2.new(0.7, 0, 0.15, 0)
     btn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     btn.Text = "KAPALI"
     btn.TextColor3 = Color3.fromRGB(255, 0, 0)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 12
+    btn.TextSize = 11
     btn.Parent = frame
+    btn.ZIndex = 7
     
     local active = false
     btn.MouseButton1Click:Connect(function()
@@ -213,21 +229,23 @@ local function createTextBox(parent, text, placeholder, callback)
     label.Text = "  " .. text
     label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Font = Enum.Font.SourceSans
-    label.TextSize = 16
+    label.TextSize = 15
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.BackgroundTransparency = 1
     label.Parent = frame
+    label.ZIndex = 7
     
     local box = Instance.new("TextBox")
-    box.Size = UDim2.new(0, 70, 0, 25)
-    box.Position = UDim2.new(0.72, 0, 0.15, 0)
+    box.Size = UDim2.new(0, 65, 0, 25)
+    box.Position = UDim2.new(0.7, 0, 0.15, 0)
     box.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     box.TextColor3 = Color3.fromRGB(255, 215, 0)
     box.PlaceholderText = placeholder
     box.Text = ""
     box.Font = Enum.Font.Code
-    box.TextSize = 14
+    box.TextSize = 13
     box.Parent = frame
+    box.ZIndex = 7
     
     box.FocusLost:Connect(function()
         callback(box.Text)
@@ -236,34 +254,29 @@ end
 
 local function createButton(parent, text, callback)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 35)
+    btn.Size = UDim2.new(0.95, 0, 0, 35)
     btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(255, 215, 0)
     btn.Font = Enum.Font.SourceSansBold
-    btn.TextSize = 16
+    btn.TextSize = 14
     btn.Parent = parent
+    btn.ZIndex = 7
     
     btn.MouseButton1Click:Connect(callback)
 end
 
+-- [[ ÖZELLİK MANTIKLARI ]] --
 
--- [[ HİLE FONKSİYONLARI VE MANTIĞI ]] --
-
---- 🎯 COMBAT KATEGORİSİ ---
+-- Hitbox Genişletici
 local hitboxSize = 10
 local hitboxEnabled = false
 
-createToggle(combatPage, "Hitbox Genişletici", function(val)
-    hitboxEnabled = val
-end)
-
+createToggle(combatPage, "Hitbox Genişletici", function(val) hitboxEnabled = val end)
 createTextBox(combatPage, "Hitbox Boyutu:", "10", function(text)
-    local num = tonumber(text)
-    if num then hitboxSize = num end
+    local num = tonumber(text) if num then hitboxSize = num end
 end)
 
--- Hitbox Döngüsü
 RunService.RenderStepped:Connect(function()
     if hitboxEnabled then
         for _, p in pairs(Players:GetPlayers()) do
@@ -276,16 +289,6 @@ RunService.RenderStepped:Connect(function()
                 hrp.CanCollide = false
             end
         end
-    else
-        -- Kapatılınca eski haline getir
-        for _, p in pairs(Players:GetPlayers()) do
-            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local hrp = p.Character.HumanoidRootPart
-                hrp.Size = Vector3.new(2, 2, 1)
-                hrp.Transparency = 1
-                hrp.CanCollide = true
-            end
-        end
     end
 end)
 
@@ -293,19 +296,19 @@ end)
 local clickerWidget = Instance.new("TextButton")
 clickerWidget.Name = "AutoClickerWidget"
 clickerWidget.Parent = QeatHUB
-clickerWidget.Size = UDim2.new(0, 65, 0, 65)
-clickerWidget.Position = UDim2.new(0.85, 0, 0.5, 0)
+clickerWidget.Size = UDim2.new(0, 60, 0, 60)
+clickerWidget.Position = UDim2.new(0.8, 0, 0.4, 0)
 clickerWidget.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 clickerWidget.BorderColor3 = Color3.fromRGB(255, 215, 0)
 clickerWidget.BorderSizePixel = 2
 clickerWidget.Text = "CLICK"
 clickerWidget.TextColor3 = Color3.fromRGB(255, 255, 255)
 clickerWidget.Font = Enum.Font.SourceSansBold
-clickerWidget.TextSize = 16
+clickerWidget.TextSize = 14
 clickerWidget.Visible = false
+clickerWidget.ZIndex = 10
 makeDraggable(clickerWidget, clickerWidget)
 
--- Yuvarlaklaştırma
 local widgetCorner = Instance.new("UICorner")
 widgetCorner.CornerRadius = UDim.new(1, 0)
 widgetCorner.Parent = clickerWidget
@@ -313,125 +316,95 @@ widgetCorner.Parent = clickerWidget
 local autoClickSpeed = 0.05
 local autoClickActive = false
 
-createToggle(combatPage, "Mobil Auto Clicker Göster", function(val)
-    clickerWidget.Visible = val
-end)
-
+createToggle(combatPage, "Mobil Auto Clicker Göster", function(val) clickerWidget.Visible = val end)
 createTextBox(combatPage, "Tıklama Saniyesi:", "0.05", function(text)
-    local num = tonumber(text)
-    if num then autoClickSpeed = num end
+    local num = tonumber(text) if num then autoClickSpeed = num end
 end)
 
 clickerWidget.MouseButton1Click:Connect(function()
     autoClickActive = not autoClickActive
-    if autoClickActive then
-        clickerWidget.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
-        clickerWidget.TextColor3 = Color3.fromRGB(0, 0, 0)
-    else
-        clickerWidget.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-        clickerWidget.TextColor3 = Color3.fromRGB(255, 255, 255)
-    end
+    clickerWidget.BackgroundColor3 = autoClickActive and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(20, 20, 20)
+    clickerWidget.TextColor3 = autoClickActive and Color3.fromRGB(0, 0, 0) or Color3.fromRGB(255, 255, 255)
 end)
 
--- Tıklama Döngüsü (VirtualUser ile hem Mobil hem PC uyumlu)
+-- Mobil Tıklama Simülasyonu (Delta Uyumlu)
 task.spawn(function()
-    local vu = game:GetService("VirtualUser")
     while task.wait() do
-        if autoClickActive then
-            vu:Button1Down(Vector2.new(clickerWidget.AbsolutePosition.X, clickerWidget.AbsolutePosition.Y))
+        if autoClickActive and LocalPlayer.Character then
+            local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
+            if tool then 
+                tool:Activate() 
+            end
             task.wait(autoClickSpeed)
-            vu:Button1Up(Vector2.new(clickerWidget.AbsolutePosition.X, clickerWidget.AbsolutePosition.Y))
         end
     end
 end)
 
-
---- ⚡ PLAYER KATEGORİSİ ---
+-- WalkSpeed
 local customSpeed = 16
 local speedLoopActive = false
-
-createToggle(playerPage, "Hız Değiştirici Aktif", function(val)
-    speedLoopActive = val
+createToggle(playerPage, "Hız Değiştirici Aktif", function(val) speedLoopActive = val end)
+createTextBox(playerPage, "Hız Değeri:", "16", function(text)
+    local num = tonumber(text) if num then customSpeed = num end
 end)
 
-createTextBox(playerPage, "Hız Değiğtir (WalkSpeed):", "16", function(text)
-    local num = tonumber(text)
-    if num then customSpeed = num end
-end)
-
--- Öldükten sonra da koruyan Hız Döngüsü
 RunService.Heartbeat:Connect(function()
     if speedLoopActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = customSpeed
     end
 end)
 
--- Sonsuz Zıplama (Infinite Jump)
+-- Infinite Jump
 local infJumpEnabled = false
-createToggle(playerPage, "Sonsuz Zıplama", function(val)
-    infJumpEnabled = val
-end)
-
+createToggle(playerPage, "Sonsuz Zıplama", function(val) infJumpEnabled = val end)
 UserInputService.JumpRequest:Connect(function()
     if infJumpEnabled and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
     end
 end)
 
--- Evrensel Shiftlock
+-- Shiftlock
 local shiftLockEnabled = false
 createToggle(playerPage, "Evrensel Shiftlock", function(val)
     shiftLockEnabled = val
     LocalPlayer.DevEnableMouseLock = shiftLockEnabled
 end)
 
-
---- 🗺️ WORLD KATEGORİSİ ---
+-- X-Ray
 local xrayActive = false
-createToggle(worldPage, "Harita X-Ray (%65 Şeffaf)", function(val)
+createToggle(worldPage, "Harita X-Ray (%65)", function(val)
     xrayActive = val
     for _, obj in pairs(workspace:GetDescendants()) do
         if obj:IsA("BasePart") and not obj:IsDescendantOf(Players) and obj.Name ~= "Terrain" then
             if xrayActive then
-                if not obj:GetAttribute("OldTrans") then
-                    obj:SetAttribute("OldTrans", obj.Transparency)
-                end
+                if not obj:GetAttribute("OldTrans") then obj:SetAttribute("OldTrans", obj.Transparency) end
                 obj.Transparency = 0.65
             else
                 local old = obj:GetAttribute("OldTrans")
-                if old then
-                    obj.Transparency = old
-                    obj:SetAttribute("OldTrans", nil)
-                else
-                    obj.Transparency = 0
-                end
+                obj.Transparency = old or 0
             end
         end
     end
 end)
 
-
---- 🛠️ SYSTEM KATEGORİSİ ---
+-- System Buttons
 createButton(systemPage, "Infinite Yield Panel Yükle", function()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeYoshi/InfiniteYield/master/source'))()
 end)
 
-createButton(systemPage, "Menüyü Tamamen Kapat", function()
-    QeatHUB:Destroy()
-end)
+createButton(systemPage, "Menüyü Tamamen Kapat", function() QeatHUB:Destroy() end)
 
-
--- [[ KÜÇÜLTME (💛) FONKSİYONU ]] --
+-- [[ KÜÇÜLTME / KAPATMA ]] --
 local minimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
     minimized = not minimized
     if minimized then
         Sidebar.Visible = false
         Container.Visible = false
-        MainPanel:TweenSize(UDim2.new(0, 500, 0, 35), "Out", "Quad", 0.3, true)
+        MainPanel:TweenSize(UDim2.new(0, 500, 0, 35), "Out", "Quad", 0.2, true)
         MinimizeBtn.Text = "🖤"
     else
-        MainPanel:TweenSize(UDim2.new(0, 500, 0, 320), "Out", "Quad", 0.3, true, function()
+        MainPanel:TweenSize(UDim2.new(0, 500, 0, 320), "Out", "Quad", 0.2, true, function()
             Sidebar.Visible = true
             Container.Visible = true
         end)
@@ -439,7 +412,4 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Kapatma Butonu İşlevi
-CloseBtn.MouseButton1Click:Connect(function()
-    QeatHUB:Destroy()
-end)
+CloseBtn.MouseButton1Click:Connect(function() QeatHUB:Destroy() end)
