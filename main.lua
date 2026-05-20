@@ -1,4 +1,4 @@
--- [[ QEATHUB v2.1 - MASTER EDITION ]] --
+-- [[ QEATHUB v2.2 - MASTER SPEED & AIM EDITION ]] --
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -9,7 +9,7 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
--- Eski arayüzü temizle
+-- Eski arayüz kalıntılarını temizle
 if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("QeatHUB_Premium") then
     LocalPlayer.PlayerGui.QeatHUB_Premium:Destroy()
 end
@@ -20,40 +20,64 @@ local Config = {
     JumpPower = 50,
     FlySpeed = 50,
     HitboxSize = 15,
+    AimSmoothness = 0.25, -- Takip yumuşaklığı (0.1 en hızlı, 1 en yavaş)
     Toggles = {
         Hitbox = false, AutoClicker = false, Speed = false, JumpPowerToggle = false,
         Xray = false, ESP = false, Noclip = false, AutoAim = false, Fly = false, DoubleJump = false
     }
 }
 
--- [[ CORE SCRIPT MENÜ TASARIMI ]] --
+-- [[ UI BAŞLANGIÇ VE PRESTİJ TASARIMI ]] --
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "QeatHUB_Premium"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer.PlayerGui
 
+-- Ana Çerçeve (Modern Yuvarlatılmış)
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 390, 0, 280)
-MainFrame.Position = UDim2.new(0.1, 0, 0.2, 0)
-MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-MainFrame.BorderSizePixel = 1
-MainFrame.BorderColor3 = Color3.fromRGB(255, 215, 0)
+MainFrame.Size = UDim2.new(0, 400, 0, 290)
+MainFrame.Position = UDim2.new(0.15, 0, 0.25, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
+MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
--- Başlık Çubuğu
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 8)
+MainCorner.Parent = MainFrame
+
+-- Neon Sarı Dış Çizgi Efekti (UI Güzelleştirme)
+local UIGradient = Instance.new("UIStroke")
+UIGradient.Color = Color3.fromRGB(255, 215, 0)
+UIGradient.Thickness = 1.5
+UIGradient.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIGradient.Parent = MainFrame
+
+-- Başlık Barı
 local TitleBar = Instance.new("Frame")
-TitleBar.Size = UDim2.new(1, 0, 0, 28)
+TitleBar.Size = UDim2.new(1, 0, 0, 32)
 TitleBar.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
 TitleBar.BorderSizePixel = 0
 TitleBar.Parent = MainFrame
 
+local BarCorner = Instance.new("UICorner")
+BarCorner.CornerRadius = UDim.new(0, 8)
+BarCorner.Parent = TitleBar
+
+-- Alt köşelerin taşmasını engellemek için düzleştirici hat
+local BarLine = Instance.new("Frame")
+BarLine.Size = UDim2.new(1, 0, 0, 4)
+BarLine.Position = UDim2.new(0, 0, 1, -4)
+BarLine.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
+BarLine.BorderSizePixel = 0
+BarLine.Parent = TitleBar
+
 local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(0.8, 0, 1, 0)
-TitleText.Position = UDim2.new(0.03, 0, 0, 0)
+TitleText.Position = UDim2.new(0.04, 0, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "⚡ QEATHUB PREMIUM v2.1"
+TitleText.Text = "⚡ QEATHUB PREMIUM v2.2 [AIMLOCK FIX]"
 TitleText.TextColor3 = Color3.fromRGB(255, 215, 0)
 TitleText.Font = Enum.Font.Code
 TitleText.TextSize = 13
@@ -61,8 +85,8 @@ TitleText.TextXAlignment = Enum.TextXAlignment.Left
 TitleText.Parent = TitleBar
 
 local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 28, 0, 28)
-MinimizeBtn.Position = UDim2.new(1, -30, 0, 0)
+MinimizeBtn.Size = UDim2.new(0, 32, 0, 32)
+MinimizeBtn.Position = UDim2.new(1, -36, 0, 0)
 MinimizeBtn.BackgroundTransparency = 1
 MinimizeBtn.Text = "[-]"
 MinimizeBtn.TextColor3 = Color3.fromRGB(255, 215, 0)
@@ -70,37 +94,51 @@ MinimizeBtn.Font = Enum.Font.Code
 MinimizeBtn.TextSize = 14
 MinimizeBtn.Parent = TitleBar
 
+-- İçerik Taşıyıcı
 local ContentFrame = Instance.new("Frame")
-ContentFrame.Size = UDim2.new(1, -115, 1, -34)
-ContentFrame.Position = UDim2.new(0, 110, 0, 32)
+ContentFrame.Size = UDim2.new(1, -125, 1, -40)
+ContentFrame.Position = UDim2.new(0, 120, 0, 36)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
+-- Yan Sekme Menüsü
 local TabBar = Instance.new("Frame")
-TabBar.Size = UDim2.new(0, 100, 1, -34)
-TabBar.Position = UDim2.new(0, 5, 0, 32)
-TabBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
+TabBar.Size = UDim2.new(0, 110, 1, -40)
+TabBar.Position = UDim2.new(0, 6, 0, 36)
+TabBar.BackgroundColor3 = Color3.fromRGB(16, 16, 16)
 TabBar.BorderSizePixel = 0
 TabBar.Parent = MainFrame
 
+local TabBarCorner = Instance.new("UICorner")
+TabBarCorner.CornerRadius = UDim.new(0, 6)
+TabBarCorner.Parent = TabBar
+
 local TabListLayout = Instance.new("UIListLayout")
 TabListLayout.Parent = TabBar
-TabListLayout.Padding = UDim.new(0, 3)
+TabListLayout.Padding = UDim.new(0, 4)
+
+local TabPadding = Instance.new("UIPadding")
+TabPadding.PaddingTop = UDim.new(0, 4)
+TabPadding.PaddingLeft = UDim.new(0, 4)
+TabPadding.PaddingRight = UDim.new(0, 4)
+TabPadding.Parent = TabBar
 
 local Pages = {}
+local Tabs = {}
+
 local function CreatePage(name)
     local Page = Instance.new("ScrollingFrame")
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
     Page.CanvasSize = UDim2.new(0, 0, 0, 420)
-    Page.ScrollBarThickness = 3
+    Page.ScrollBarThickness = 2
     Page.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
     Page.Visible = false
     Page.Parent = ContentFrame
     
     local List = Instance.new("UIListLayout")
     List.Parent = Page
-    List.Padding = UDim.new(0, 5)
+    List.Padding = UDim.new(0, 6)
     
     Pages[name] = Page
     return Page
@@ -113,36 +151,50 @@ Pages["Combat"].Visible = true
 
 local function AddTab(name)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, 0, 0, 30)
+    Btn.Size = UDim2.new(1, 0, 0, 32)
     Btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
     Btn.BorderSizePixel = 0
     Btn.Text = " " .. name
-    Btn.TextColor3 = Color3.fromRGB(160, 160, 160)
+    Btn.TextColor3 = Color3.fromRGB(150, 150, 150)
     Btn.Font = Enum.Font.Code
-    Btn.TextSize = 12
+    Btn.TextSize = 11
     Btn.TextXAlignment = Enum.TextXAlignment.Left
     Btn.Parent = TabBar
     
+    local BtnCorner = Instance.new("UICorner")
+    BtnCorner.CornerRadius = UDim.new(0, 4)
+    BtnCorner.Parent = Btn
+    
+    Tabs[name] = Btn
+    
     Btn.MouseButton1Click:Connect(function()
-        for _, p in pairs(Pages) do p.Visible = false end
+        for k, p in pairs(Pages) do 
+            p.Visible = false 
+            Tabs[k].TextColor3 = Color3.fromRGB(150, 150, 150)
+            Tabs[k].BackgroundColor3 = Color3.fromRGB(22, 22, 22)
+        end
         Pages[name].Visible = true
+        Btn.TextColor3 = Color3.fromRGB(255, 215, 0)
+        Btn.BackgroundColor3 = Color3.fromRGB(28, 28, 20)
     end)
 end
+
 AddTab("Combat")
 AddTab("Player")
 AddTab("World")
+Tabs["Combat"].TextColor3 = Color3.fromRGB(255, 215, 0) -- İlk açılış vurgusu
 
--- Menü Küçültme Mekanizması
+-- Küçültme Tetikleyicisi
 local isMinimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
     if isMinimized then
         ContentFrame.Visible = false
         TabBar.Visible = false
-        MainFrame:TweenSize(UDim2.new(0, 390, 0, 28), "Out", "Quad", 0.15, true)
+        MainFrame:TweenSize(UDim2.new(0, 400, 0, 32), "Out", "Quad", 0.15, true)
         MinimizeBtn.Text = "[+]"
     else
-        MainFrame:TweenSize(UDim2.new(0, 390, 0, 280), "Out", "Quad", 0.15, true, function()
+        MainFrame:TweenSize(UDim2.new(0, 400, 0, 290), "Out", "Quad", 0.15, true, function()
             ContentFrame.Visible = true
             TabBar.Visible = true
         end)
@@ -150,14 +202,17 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- UI Toggle Element Yapıcı
+-- Gelişmiş Yuvarlak Toggle Tasarımı
 local function CreateToggle(parent, text, configKey, callback)
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, -10, 0, 32)
+    Frame.Size = UDim2.new(1, -10, 0, 34)
     Frame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    Frame.BorderSizePixel = 1
-    Frame.BorderColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.BorderSizePixel = 0
     Frame.Parent = parent
+    
+    local FCorn = Instance.new("UICorner")
+    FCorn.CornerRadius = UDim.new(0, 5)
+    FCorn.Parent = Frame
     
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(0.7, 0, 1, 0)
@@ -171,11 +226,15 @@ local function CreateToggle(parent, text, configKey, callback)
     Label.Parent = Frame
     
     local Indicator = Instance.new("Frame")
-    Indicator.Size = UDim2.new(0, 32, 0, 14)
-    Indicator.Position = UDim2.new(0.95, -32, 0.5, -7)
-    Indicator.BackgroundColor3 = Color3.fromRGB(40, 10, 10)
+    Indicator.Size = UDim2.new(0, 30, 0, 14)
+    Indicator.Position = UDim2.new(0.95, -30, 0.5, -7)
+    Indicator.BackgroundColor3 = Color3.fromRGB(35, 15, 15)
     Indicator.BorderSizePixel = 0
     Indicator.Parent = Frame
+    
+    local ICorn = Instance.new("UICorner")
+    ICorn.CornerRadius = UDim.new(1, 0)
+    ICorn.Parent = Indicator
     
     local Dot = Instance.new("Frame")
     Dot.Size = UDim2.new(0, 10, 0, 10)
@@ -184,6 +243,15 @@ local function CreateToggle(parent, text, configKey, callback)
     Dot.BorderSizePixel = 0
     Dot.Parent = Indicator
     
+    local DCorn = Instance.new("UICorner")
+    DCorn.CornerRadius = UDim.new(1, 0)
+    DCorn.Parent = Dot
+    
+    local Stroke = Instance.new("UIStroke")
+    Stroke.Color = Color3.fromRGB(35, 35, 35)
+    Stroke.Thickness = 1
+    Stroke.Parent = Frame
+
     local btn = Instance.new("TextButton")
     btn.Size = UDim2.new(1, 0, 1, 0)
     btn.BackgroundTransparency = 1
@@ -194,33 +262,36 @@ local function CreateToggle(parent, text, configKey, callback)
         Config.Toggles[configKey] = not Config.Toggles[configKey]
         local active = Config.Toggles[configKey]
         if active then
-            TweenService:Create(Indicator, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(15, 50, 15)}):Play()
+            TweenService:Create(Indicator, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(15, 45, 15)}):Play()
             TweenService:Create(Dot, TweenInfo.new(0.15), {Position = UDim2.new(1, -12, 0.5, -5), BackgroundColor3 = Color3.fromRGB(25, 215, 0)}):Play()
-            Frame.BorderColor3 = Color3.fromRGB(255, 215, 0)
+            Stroke.Color = Color3.fromRGB(255, 215, 0)
         else
-            TweenService:Create(Indicator, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(40, 10, 10)}):Play()
+            TweenService:Create(Indicator, TweenInfo.new(0.15), {BackgroundColor3 = Color3.fromRGB(35, 15, 15)}):Play()
             TweenService:Create(Dot, TweenInfo.new(0.15), {Position = UDim2.new(0, 2, 0.5, -5), BackgroundColor3 = Color3.fromRGB(150, 50, 50)}):Play()
-            Frame.BorderColor3 = Color3.fromRGB(30, 30, 30)
+            Stroke.Color = Color3.fromRGB(35, 35, 35)
         end
         callback(active)
     end)
 end
 
--- UI Slider (Ayar Çubuğu) Yapıcı
+-- Şık Kaydırıcı (Slider) Dizaynı
 local function CreateSlider(parent, text, min, max, default, callback)
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, -10, 0, 40)
+    Frame.Size = UDim2.new(1, -10, 0, 42)
     Frame.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
-    Frame.BorderSizePixel = 1
-    Frame.BorderColor3 = Color3.fromRGB(30, 30, 30)
+    Frame.BorderSizePixel = 0
     Frame.Parent = parent
+
+    local SCorn = Instance.new("UICorner")
+    SCorn.CornerRadius = UDim.new(0, 5)
+    SCorn.Parent = Frame
 
     local Label = Instance.new("TextLabel")
     Label.Size = UDim2.new(0.6, 0, 0, 18)
-    Label.Position = UDim2.new(0.04, 0, 0, 2)
+    Label.Position = UDim2.new(0.04, 0, 0, 3)
     Label.BackgroundTransparency = 1
     Label.Text = text
-    Label.TextColor3 = Color3.fromRGB(200, 200, 200)
+    Label.TextColor3 = Color3.fromRGB(180, 180, 180)
     Label.Font = Enum.Font.Code
     Label.TextSize = 11
     Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -228,7 +299,7 @@ local function CreateSlider(parent, text, min, max, default, callback)
 
     local ValueLabel = Instance.new("TextLabel")
     ValueLabel.Size = UDim2.new(0.3, 0, 0, 18)
-    ValueLabel.Position = UDim2.new(0.65, 0, 0, 2)
+    ValueLabel.Position = UDim2.new(0.65, 0, 0, 3)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = tostring(default)
     ValueLabel.TextColor3 = Color3.fromRGB(255, 215, 0)
@@ -238,9 +309,9 @@ local function CreateSlider(parent, text, min, max, default, callback)
     ValueLabel.Parent = Frame
 
     local SliderBar = Instance.new("TextButton")
-    SliderBar.Size = UDim2.new(0.92, 0, 0, 6)
-    SliderBar.Position = UDim2.new(0.04, 0, 0.7, -3)
-    SliderBar.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    SliderBar.Size = UDim2.new(0.92, 0, 0, 4)
+    SliderBar.Position = UDim2.new(0.04, 0, 0.75, -2)
+    SliderBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     SliderBar.BorderSizePixel = 0
     SliderBar.Text = ""
     SliderBar.Parent = Frame
@@ -283,23 +354,32 @@ end
 
 local function CreateSysButton(parent, text, color, callback)
     local Btn = Instance.new("TextButton")
-    Btn.Size = UDim2.new(1, -10, 0, 30)
+    Btn.Size = UDim2.new(1, -10, 0, 32)
     Btn.BackgroundColor3 = Color3.fromRGB(22, 22, 22)
-    Btn.BorderColor3 = color
+    Btn.BorderSizePixel = 0
     Btn.Text = text
     Btn.TextColor3 = color
     Btn.Font = Enum.Font.Code
     Btn.TextSize = 11
     Btn.Parent = parent
+    
+    local BCorn = Instance.new("UICorner")
+    BCorn.CornerRadius = UDim.new(0, 5)
+    BCorn.Parent = Btn
+    
+    local BStroke = Instance.new("UIStroke")
+    BStroke.Color = color
+    BStroke.Thickness = 1
+    BStroke.Parent = Btn
+
     Btn.MouseButton1Click:Connect(callback)
 end
 
 -- ==========================================================
--- 🎯 COMBAT SEKMESİ (SAVAŞ)
+-- 🎯 COMBAT MODULE (GELİŞMİŞ KİLİTLENME VE GÖVDE SENKRONU)
 -- ==========================================================
 
--- Gelişmiş Duvar Arkası Kontrollü AutoAim (Head Lock)
-CreateToggle(CombatPage, "Auto Aim Lock (Wall-Check Head)", "AutoAim", function() end)
+CreateToggle(CombatPage, "Auto Aim 2.0 (Gövde + Kafa)", "AutoAim", function() end)
 
 local function IsVisible(targetPart)
     local character = LocalPlayer.Character
@@ -313,20 +393,20 @@ local function IsVisible(targetPart)
     raycastParams.IgnoreWater = true
     
     local raycastResult = Workspace:Raycast(origin, direction, raycastParams)
-    return raycastResult == nil -- Eğer engel yoksa true döner
+    return raycastResult == nil
 end
 
 local function GetClosestVisiblePlayerHead()
     local closest, maxDist = nil, math.huge
     for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
             local head = p.Character.Head
             if IsVisible(head) then
                 local screenPos, onScreen = Camera:WorldToScreenPoint(head.Position)
                 if onScreen then
                     local mousePos = UserInputService:GetMouseLocation()
                     local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
-                    if dist < maxDist then closest = head; maxDist = dist end
+                    if dist < maxDist then closest = p.Character; maxDist = dist end
                 end
             end
         end
@@ -334,11 +414,24 @@ local function GetClosestVisiblePlayerHead()
     return closest
 end
 
+-- [[ KRİTİK DÜZELTME: KAMERA VE GÖVDE AYNI ANDA DÖNER ]] --
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.AutoAim then
-        local targetHead = GetClosestVisiblePlayerHead()
-        if targetHead then
-            Camera.CFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
+        local targetChar = GetClosestVisiblePlayerHead()
+        if targetChar and targetChar:FindFirstChild("Head") and targetChar:FindFirstChild("HumanoidRootPart") then
+            local targetHead = targetChar.Head
+            local targetHRP = targetChar.HumanoidRootPart
+            local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            
+            if myHRP then
+                -- 1. Kamera Kilitlenmesi (Lerp ile Pürüzsüzleştirilmiş Takip)
+                local targetCFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
+                Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, Config.AimSmoothness)
+                
+                -- 2. Gövde Kilitlenmesi (Karakteri anlık olarak düşmana döndürür)
+                local lookAtVector = Vector3.new(targetHRP.Position.X, myHRP.Position.Y, targetHRP.Position.Z)
+                myHRP.CFrame = CFrame.new(myHRP.Position, lookAtVector)
+            end
         end
     end
 end)
@@ -379,6 +472,7 @@ ClickWidget.Font = Enum.Font.Code
 ClickWidget.Visible = false
 ClickWidget.Active = true; ClickWidget.Draggable = true
 local UICorner = Instance.new("UICorner") ; UICorner.CornerRadius = UDim.new(1,0) ; UICorner.Parent = ClickWidget
+local ClickStroke = Instance.new("UIStroke"); ClickStroke.Color = Color3.fromRGB(255,215,0); ClickStroke.Thickness = 1.5; ClickStroke.Parent = ClickWidget
 ClickWidget.Parent = ScreenGui
 
 CreateToggle(CombatPage, "Auto Clicker Widget", "AutoClicker", function(state) ClickWidget.Visible = state end)
@@ -398,14 +492,11 @@ task.spawn(function()
 end)
 
 -- ==========================================================
--- ⚡ PLAYER SEKMESİ (KARAKTER AYARLARI)
+-- ⚡ PLAYER MODULE (KARAKTER YENİLİKLERİ)
 -- ==========================================================
 
--- Speed Changer & Slider
 CreateToggle(PlayerPage, "Enable Speed Changer", "Speed", function() end)
-CreateSlider(PlayerPage, "Set Speed Value", 16, 150, 50, function(value)
-    Config.WalkSpeed = value
-end)
+CreateSlider(PlayerPage, "Set Speed Value", 16, 150, 50, function(value) Config.WalkSpeed = value end)
 
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.Speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -413,11 +504,8 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Jump Power Changer & Slider
 CreateToggle(PlayerPage, "Enable Jump Changer", "JumpPowerToggle", function() end)
-CreateSlider(PlayerPage, "Set Jump Power", 50, 300, 100, function(value)
-    Config.JumpPower = value
-end)
+CreateSlider(PlayerPage, "Set Jump Power", 50, 300, 100, function(value) Config.JumpPower = value end)
 
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.JumpPowerToggle and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -427,11 +515,9 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Double Jump Motoru (Yenilenmiş Altyapı)
+-- Çift Zıplama (Double Jump Motoru)
 CreateToggle(PlayerPage, "Double Jump Engine", "DoubleJump", function() end)
 local hasDoubleJumped = false
-local oldState = false
-
 UserInputService.JumpRequest:Connect(function()
     if Config.Toggles.DoubleJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
@@ -442,7 +528,6 @@ UserInputService.JumpRequest:Connect(function()
         end
     end
 end)
-
 RunService.RenderStepped:Connect(function()
     if LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         if LocalPlayer.Character:FindFirstChildOfClass("Humanoid").FloorMaterial ~= Enum.Material.Air then
@@ -451,7 +536,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Yenilenmiş Fly Engine (Stabilize)
+-- Stabil Fly Motoru
 CreateToggle(PlayerPage, "Fly Engine", "Fly", function() end)
 local flyGyro, flyVelocity
 RunService.RenderStepped:Connect(function()
@@ -460,22 +545,17 @@ RunService.RenderStepped:Connect(function()
         local hum = LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         
         if not hrp:FindFirstChild("QeatFlyGyro") then
-            flyGyro = Instance.new("BodyGyro")
+            flyGyro = Instance.new("BodyGyro", hrp)
             flyGyro.Name = "QeatFlyGyro"
             flyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-            flyGyro.Parent = hrp
             
-            flyVelocity = Instance.new("BodyVelocity")
+            flyVelocity = Instance.new("BodyVelocity", hrp)
             flyVelocity.Name = "QeatFlyVel"
             flyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
-            flyVelocity.Parent = hrp
         end
-        
         if hum then hum.PlatformStand = true end
         flyGyro.cframe = Camera.CFrame
-        
-        local moveDir = hum and hum.MoveDirection or Vector3.new(0,0,0)
-        flyVelocity.velocity = moveDir * Config.FlySpeed
+        flyVelocity.velocity = (hum and hum.MoveDirection or Vector3.new(0,0,0)) * Config.FlySpeed
     else
         if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
             local hrp = LocalPlayer.Character.HumanoidRootPart
@@ -487,37 +567,32 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Yenilenmiş Mobil Uyumlu Shiftlock Modülü
+-- Mobil Shiftlock Fix
 local ShiftlockButton = Instance.new("TextButton")
 ShiftlockButton.Size = UDim2.new(0, 50, 0, 50)
 ShiftlockButton.Position = UDim2.new(0.85, 0, 0.3, 0)
 ShiftlockButton.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-ShiftlockButton.BorderColor3 = Color3.fromRGB(255, 215, 0)
-ShiftlockButton.BorderSizePixel = 2
 ShiftlockButton.Text = "🔒"
 ShiftlockButton.TextSize = 18
 ShiftlockButton.Visible = false
 local CornerLock = Instance.new("UICorner"); CornerLock.CornerRadius = UDim.new(1,0); CornerLock.Parent = ShiftlockButton
+local LockStroke = Instance.new("UIStroke"); LockStroke.Color = Color3.fromRGB(255,215,0); LockStroke.Thickness = 1.5; LockStroke.Parent = ShiftlockButton
 ShiftlockButton.Parent = ScreenGui
 
-CreateToggle(PlayerPage, "Mobile Shiftlock Fix", "Shiftlock", function(state)
-    ShiftlockButton.Visible = state
-end)
-
+CreateToggle(PlayerPage, "Mobile Shiftlock Fix", "Shiftlock", function(state) ShiftlockButton.Visible = state end)
 local shiftlockActive = false
 ShiftlockButton.MouseButton1Click:Connect(function()
     shiftlockActive = not shiftlockActive
     ShiftlockButton.BackgroundColor3 = shiftlockActive and Color3.fromRGB(255, 215, 0) or Color3.fromRGB(20, 20, 20)
 end)
-
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.Shiftlock and shiftlockActive and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
         local hrp = LocalPlayer.Character.HumanoidRootPart
         local camLook = Camera.CFrame.LookVector
         hrp.CFrame = CFrame.new(hrp.Position, Vector3.new(hrp.Position.X + camLook.X, hrp.Position.Y, hrp.Position.Z + camLook.Z))
-        Camera.CameraOffset = Vector3.new(1.75, 0, 0) -- Ommuz hizası kamerası
+        Camera.CameraOffset = Vector3.new(1.75, 0, 0)
     else
-        Camera.CameraOffset = Vector3.new(0, 0, 0)
+        if not Config.Toggles.AutoAim then Camera.CameraOffset = Vector3.new(0, 0, 0) end
     end
 end)
 
@@ -532,7 +607,7 @@ RunService.Stepped:Connect(function()
 end)
 
 -- ==========================================================
--- 🗺️ WORLD SEKMESİ (DÜNYA AYARLARI)
+-- 🗺️ WORLD & SYSTEM MODULE
 -- ==========================================================
 
 -- Visual ESP Box
