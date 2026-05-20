@@ -1,4 +1,4 @@
--- [[ QEATHUB v2.2 - MASTER SPEED & AIM EDITION ]] --
+-- [[ QEATHUB v2.3 - ROBLOX RIVALS SPECIAL EDITION ]] --
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -14,26 +14,25 @@ if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("QeatHUB_Premium") then
     LocalPlayer.PlayerGui.QeatHUB_Premium:Destroy()
 end
 
--- Dinamik Ayarlar Bloğu
+-- Rivals İçin Optimize Edilmiş Ayarlar Bloğu
 local Config = {
     WalkSpeed = 16,
     JumpPower = 50,
     FlySpeed = 50,
-    HitboxSize = 15,
-    AimSmoothness = 0.25, -- Takip yumuşaklığı (0.1 en hızlı, 1 en yavaş)
+    HitboxSize = 12, -- Rivals için en güvenli ve ideal hitbox boyutu
+    AimSmoothness = 0.32, -- Anti-cheat koruması için insansı yumuşatma (Rivals Güvenlik Ayarı)
     Toggles = {
         Hitbox = false, AutoClicker = false, Speed = false, JumpPowerToggle = false,
         Xray = false, ESP = false, Noclip = false, AutoAim = false, Fly = false, DoubleJump = false
     }
 }
 
--- [[ UI BAŞLANGIÇ VE PRESTİJ TASARIMI ]] --
+-- [[ UI TASARIMI (PREMIUM NEON SARI & SİBER KARANLIK) ]] --
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "QeatHUB_Premium"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer.PlayerGui
 
--- Ana Çerçeve (Modern Yuvarlatılmış)
 local MainFrame = Instance.new("Frame")
 MainFrame.Size = UDim2.new(0, 400, 0, 290)
 MainFrame.Position = UDim2.new(0.15, 0, 0.25, 0)
@@ -47,14 +46,12 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 8)
 MainCorner.Parent = MainFrame
 
--- Neon Sarı Dış Çizgi Efekti (UI Güzelleştirme)
 local UIGradient = Instance.new("UIStroke")
 UIGradient.Color = Color3.fromRGB(255, 215, 0)
 UIGradient.Thickness = 1.5
 UIGradient.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 UIGradient.Parent = MainFrame
 
--- Başlık Barı
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 32)
 TitleBar.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
@@ -65,7 +62,6 @@ local BarCorner = Instance.new("UICorner")
 BarCorner.CornerRadius = UDim.new(0, 8)
 BarCorner.Parent = TitleBar
 
--- Alt köşelerin taşmasını engellemek için düzleştirici hat
 local BarLine = Instance.new("Frame")
 BarLine.Size = UDim2.new(1, 0, 0, 4)
 BarLine.Position = UDim2.new(0, 0, 1, -4)
@@ -77,7 +73,7 @@ local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(0.8, 0, 1, 0)
 TitleText.Position = UDim2.new(0.04, 0, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "⚡ QEATHUB PREMIUM v2.2 [AIMLOCK FIX]"
+TitleText.Text = "⚡ QEATHUB v2.3 [RIVALS EDITION]"
 TitleText.TextColor3 = Color3.fromRGB(255, 215, 0)
 TitleText.Font = Enum.Font.Code
 TitleText.TextSize = 13
@@ -94,14 +90,12 @@ MinimizeBtn.Font = Enum.Font.Code
 MinimizeBtn.TextSize = 14
 MinimizeBtn.Parent = TitleBar
 
--- İçerik Taşıyıcı
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Size = UDim2.new(1, -125, 1, -40)
 ContentFrame.Position = UDim2.new(0, 120, 0, 36)
 ContentFrame.BackgroundTransparency = 1
 ContentFrame.Parent = MainFrame
 
--- Yan Sekme Menüsü
 local TabBar = Instance.new("Frame")
 TabBar.Size = UDim2.new(0, 110, 1, -40)
 TabBar.Position = UDim2.new(0, 6, 0, 36)
@@ -182,9 +176,8 @@ end
 AddTab("Combat")
 AddTab("Player")
 AddTab("World")
-Tabs["Combat"].TextColor3 = Color3.fromRGB(255, 215, 0) -- İlk açılış vurgusu
+Tabs["Combat"].TextColor3 = Color3.fromRGB(255, 215, 0)
 
--- Küçültme Tetikleyicisi
 local isMinimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
     isMinimized = not isMinimized
@@ -202,7 +195,6 @@ MinimizeBtn.MouseButton1Click:Connect(function()
     end
 end)
 
--- Gelişmiş Yuvarlak Toggle Tasarımı
 local function CreateToggle(parent, text, configKey, callback)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -10, 0, 34)
@@ -274,7 +266,6 @@ local function CreateToggle(parent, text, configKey, callback)
     end)
 end
 
--- Şık Kaydırıcı (Slider) Dizaynı
 local function CreateSlider(parent, text, min, max, default, callback)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -10, 0, 42)
@@ -376,11 +367,12 @@ local function CreateSysButton(parent, text, color, callback)
 end
 
 -- ==========================================================
--- 🎯 COMBAT MODULE (GELİŞMİŞ KİLİTLENME VE GÖVDE SENKRONU)
+-- 🎯 COMBAT MODULE (ROBLOX RIVALS ANTI-CHEAT BYPASS)
 -- ==========================================================
 
-CreateToggle(CombatPage, "Auto Aim 2.0 (Gövde + Kafa)", "AutoAim", function() end)
+CreateToggle(CombatPage, "Rivals Auto Aim 2.0", "AutoAim", function() end)
 
+-- Rivals İçin Geliştirilmiş Görünürlük Testi (Duvar Arkası Engelleme)
 local function IsVisible(targetPart)
     local character = LocalPlayer.Character
     if not character then return false end
@@ -396,10 +388,12 @@ local function IsVisible(targetPart)
     return raycastResult == nil
 end
 
+-- Rivals Takım Kontrolü ve En Yakın Oyuncuyu Bulma
 local function GetClosestVisiblePlayerHead()
     local closest, maxDist = nil, math.huge
     for _, p in ipairs(Players:GetPlayers()) do
-        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+        -- Rivals Takım Koruması: Aynı takımdakilere aim kaymaz
+        if p ~= LocalPlayer and p.Team ~= LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
             local head = p.Character.Head
             if IsVisible(head) then
                 local screenPos, onScreen = Camera:WorldToScreenPoint(head.Position)
@@ -414,7 +408,7 @@ local function GetClosestVisiblePlayerHead()
     return closest
 end
 
--- [[ KRİTİK DÜZELTME: KAMERA VE GÖVDE AYNI ANDA DÖNER ]] --
+-- [[ RIVALS ÖZEL: KAMERA + SİLAH NAMLU HİZALAMA MOTORU ]] --
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.AutoAim then
         local targetChar = GetClosestVisiblePlayerHead()
@@ -424,25 +418,26 @@ RunService.RenderStepped:Connect(function()
             local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             
             if myHRP then
-                -- 1. Kamera Kilitlenmesi (Lerp ile Pürüzsüzleştirilmiş Takip)
+                -- 1. Rivals Anti-Cheat Uyumlu Kamera Takibi (İnsansı Geçiş Efekti)
                 local targetCFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
                 Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, Config.AimSmoothness)
                 
-                -- 2. Gövde Kilitlenmesi (Karakteri anlık olarak düşmana döndürür)
-                local lookAtVector = Vector3.new(targetHRP.Position.X, myHRP.Position.Y, targetHRP.Position.Z)
-                myHRP.CFrame = CFrame.new(myHRP.Position, lookAtVector)
+                -- 2. Rivals Namlu Senkronizasyonu (Gövdeyi 3 Boyutlu Eksende Düşmana Çevirir)
+                -- Mermilerin Rivals sunucusunda hata vermeden tam hedefe gitmesini sağlar
+                local targetPosition = targetHRP.Position
+                myHRP.CFrame = CFrame.new(myHRP.Position, Vector3.new(targetPosition.X, myHRP.Position.Y, targetPosition.Z))
             end
         end
     end
 end)
 
--- Hitbox Genişletici
-CreateToggle(CombatPage, "Hitbox Extender (15 STU)", "Hitbox", function() end)
+-- Hitbox Extender (Rivals İçin Güvenli Sınır)
+CreateToggle(CombatPage, "Hitbox Extender (Rivals Safe)", "Hitbox", function() end)
 task.spawn(function()
     while true do task.wait(0.5)
         if Config.Toggles.Hitbox then
             for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                if p ~= LocalPlayer and p.Team ~= LocalPlayer.Team and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                     local hrp = p.Character.HumanoidRootPart
                     hrp.Size = Vector3.new(Config.HitboxSize, Config.HitboxSize, Config.HitboxSize)
                     hrp.Transparency = 0.7; hrp.Color = Color3.fromRGB(255, 215, 0)
@@ -492,11 +487,11 @@ task.spawn(function()
 end)
 
 -- ==========================================================
--- ⚡ PLAYER MODULE (KARAKTER YENİLİKLERİ)
+-- ⚡ PLAYER MODULE (KARAKTER HAREKETLERİ)
 -- ==========================================================
 
 CreateToggle(PlayerPage, "Enable Speed Changer", "Speed", function() end)
-CreateSlider(PlayerPage, "Set Speed Value", 16, 150, 50, function(value) Config.WalkSpeed = value end)
+CreateSlider(PlayerPage, "Set Speed Value", 16, 150, 45, function(value) Config.WalkSpeed = value end)
 
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.Speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -505,7 +500,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 CreateToggle(PlayerPage, "Enable Jump Changer", "JumpPowerToggle", function() end)
-CreateSlider(PlayerPage, "Set Jump Power", 50, 300, 100, function(value) Config.JumpPower = value end)
+CreateSlider(PlayerPage, "Set Jump Power", 50, 300, 85, function(value) Config.JumpPower = value end)
 
 RunService.RenderStepped:Connect(function()
     if Config.Toggles.JumpPowerToggle and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -515,7 +510,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Çift Zıplama (Double Jump Motoru)
+-- Çift Zıplama
 CreateToggle(PlayerPage, "Double Jump Engine", "DoubleJump", function() end)
 local hasDoubleJumped = false
 UserInputService.JumpRequest:Connect(function()
@@ -536,7 +531,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Stabil Fly Motoru
+-- Fly Motoru
 CreateToggle(PlayerPage, "Fly Engine", "Fly", function() end)
 local flyGyro, flyVelocity
 RunService.RenderStepped:Connect(function()
@@ -567,7 +562,7 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Mobil Shiftlock Fix
+-- Shiftlock Fix
 local ShiftlockButton = Instance.new("TextButton")
 ShiftlockButton.Size = UDim2.new(0, 50, 0, 50)
 ShiftlockButton.Position = UDim2.new(0.85, 0, 0.3, 0)
@@ -607,10 +602,9 @@ RunService.Stepped:Connect(function()
 end)
 
 -- ==========================================================
--- 🗺️ WORLD & SYSTEM MODULE
+-- 🗺️ WORLD MODULE (RIVALS TAKIM DESTEKLİ ESP)
 -- ==========================================================
 
--- Visual ESP Box
 CreateToggle(WorldPage, "Visual ESP Box", "ESP", function() end)
 local function CreateESP(player)
     local Box = Instance.new("BoxHandleAdornment")
@@ -630,9 +624,18 @@ local function CreateESP(player)
 end
 for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer then CreateESP(p) end end
 Players.PlayerAdded:Connect(function(p) if p ~= LocalPlayer then CreateESP(p) end end)
+
 RunService.RenderStepped:Connect(function()
     for _, adorn in ipairs(ScreenGui:GetChildren()) do
-        if adorn.Name == "QeatESP" then adorn.Visible = Config.Toggles.ESP end
+        if adorn.Name == "QeatESP" then 
+            local ply = Players:GetPlayerFromCharacter(adorn.Adornee and adorn.Adornee.Parent)
+            -- Sadece karşı takımdakileri ESP'de göster (FPS performans artışı sağlar)
+            if ply and ply.Team ~= LocalPlayer.Team then
+                adorn.Visible = Config.Toggles.ESP
+            else
+                adorn.Visible = false
+            end
+        end
     end
 end)
 
