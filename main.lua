@@ -1,4 +1,4 @@
--- [[ QEATHUB v2.3 - ROBLOX RIVALS SPECIAL EDITION ]] --
+-- [[ QEATHUB v2.4 - UNIVERSAL EDITION (RIVALS & MM2 SPECIAL) ]] --
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -9,21 +9,32 @@ local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
+-- Hangi oyunda olduğumuzu otomatik tespit etme motoru
+local CurrentGame = "Universal"
+if game.PlaceId == 142823291 or game.GameId == 506727284 then -- MM2 ID Kontrolleri
+    CurrentGame = "MM2"
+elseif game.PlaceId == 17625359962 or workspace:FindFirstChild("Rivals_Assets") then -- Rivals Kontrolü
+    CurrentGame = "Rivals"
+end
+
 -- Eski arayüz kalıntılarını temizle
 if LocalPlayer:WaitForChild("PlayerGui"):FindFirstChild("QeatHUB_Premium") then
     LocalPlayer.PlayerGui.QeatHUB_Premium:Destroy()
 end
 
--- Rivals İçin Optimize Edilmiş Ayarlar Bloğu
+-- Config Yapısı (MM2 Toggles'ları Entegre Edildi)
 local Config = {
     WalkSpeed = 16,
     JumpPower = 50,
     FlySpeed = 50,
-    HitboxSize = 12, -- Rivals için en güvenli ve ideal hitbox boyutu
-    AimSmoothness = 0.32, -- Anti-cheat koruması için insansı yumuşatma (Rivals Güvenlik Ayarı)
+    HitboxSize = 12,
+    AimSmoothness = 0.32,
     Toggles = {
         Hitbox = false, AutoClicker = false, Speed = false, JumpPowerToggle = false,
-        Xray = false, ESP = false, Noclip = false, AutoAim = false, Fly = false, DoubleJump = false
+        Xray = false, ESP = false, Noclip = false, AutoAim = false, Fly = false, DoubleJump = false,
+        -- MM2 Özel Toggles
+        MM2SafeZone = false, MM2RoleESP = false, MM2SheriffAim = false,
+        MM2CounterKill = false, MM2KillAura = false, MM2HighlightSheriff = false
     }
 }
 
@@ -46,11 +57,11 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 8)
 MainCorner.Parent = MainFrame
 
-local UIGradient = Instance.new("UIStroke")
-UIGradient.Color = Color3.fromRGB(255, 215, 0)
-UIGradient.Thickness = 1.5
-UIGradient.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-UIGradient.Parent = MainFrame
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 215, 0)
+UIStroke.Thickness = 1.5
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.Parent = MainFrame
 
 local TitleBar = Instance.new("Frame")
 TitleBar.Size = UDim2.new(1, 0, 0, 32)
@@ -73,7 +84,7 @@ local TitleText = Instance.new("TextLabel")
 TitleText.Size = UDim2.new(0.8, 0, 1, 0)
 TitleText.Position = UDim2.new(0.04, 0, 0, 0)
 TitleText.BackgroundTransparency = 1
-TitleText.Text = "⚡ QEATHUB v2.3 [RIVALS EDITION]"
+TitleText.Text = "⚡ QEATHUB v2.4 [" .. string.upper(CurrentGame) .. " EDITION]"
 TitleText.TextColor3 = Color3.fromRGB(255, 215, 0)
 TitleText.Font = Enum.Font.Code
 TitleText.TextSize = 13
@@ -124,7 +135,7 @@ local function CreatePage(name)
     local Page = Instance.new("ScrollingFrame")
     Page.Size = UDim2.new(1, 0, 1, 0)
     Page.BackgroundTransparency = 1
-    Page.CanvasSize = UDim2.new(0, 0, 0, 420)
+    Page.CanvasSize = UDim2.new(0, 0, 0, 480)
     Page.ScrollBarThickness = 2
     Page.ScrollBarImageColor3 = Color3.fromRGB(255, 215, 0)
     Page.Visible = false
@@ -138,10 +149,11 @@ local function CreatePage(name)
     return Page
 end
 
+-- Dinamik Sayfa Oluşturma Mantığı
 local CombatPage = CreatePage("Combat")
 local PlayerPage = CreatePage("Player")
 local WorldPage = CreatePage("World")
-Pages["Combat"].Visible = true
+local MM2Page = CreatePage("MM2")
 
 local function AddTab(name)
     local Btn = Instance.new("TextButton")
@@ -176,7 +188,16 @@ end
 AddTab("Combat")
 AddTab("Player")
 AddTab("World")
-Tabs["Combat"].TextColor3 = Color3.fromRGB(255, 215, 0)
+
+-- Eğer MM2'deysek MM2 sekmesini aktif et ve ilk onu göster, yoksa gizle
+if CurrentGame == "MM2" then
+    AddTab("MM2")
+    Pages["MM2"].Visible = true
+    Tabs["MM2"].TextColor3 = Color3.fromRGB(255, 215, 0)
+else
+    Pages["Combat"].Visible = true
+    Tabs["Combat"].TextColor3 = Color3.fromRGB(255, 215, 0)
+end
 
 local isMinimized = false
 MinimizeBtn.MouseButton1Click:Connect(function()
@@ -372,7 +393,6 @@ end
 
 CreateToggle(CombatPage, "Rivals Auto Aim 2.0", "AutoAim", function() end)
 
--- Rivals İçin Geliştirilmiş Görünürlük Testi (Duvar Arkası Engelleme)
 local function IsVisible(targetPart)
     local character = LocalPlayer.Character
     if not character then return false end
@@ -388,11 +408,9 @@ local function IsVisible(targetPart)
     return raycastResult == nil
 end
 
--- Rivals Takım Kontrolü ve En Yakın Oyuncuyu Bulma
 local function GetClosestVisiblePlayerHead()
     local closest, maxDist = nil, math.huge
     for _, p in ipairs(Players:GetPlayers()) do
-        -- Rivals Takım Koruması: Aynı takımdakilere aim kaymaz
         if p ~= LocalPlayer and p.Team ~= LocalPlayer.Team and p.Character and p.Character:FindFirstChild("Head") and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
             local head = p.Character.Head
             if IsVisible(head) then
@@ -408,9 +426,8 @@ local function GetClosestVisiblePlayerHead()
     return closest
 end
 
--- [[ RIVALS ÖZEL: KAMERA + SİLAH NAMLU HİZALAMA MOTORU ]] --
 RunService.RenderStepped:Connect(function()
-    if Config.Toggles.AutoAim then
+    if Config.Toggles.AutoAim and CurrentGame == "Rivals" then
         local targetChar = GetClosestVisiblePlayerHead()
         if targetChar and targetChar:FindFirstChild("Head") and targetChar:FindFirstChild("HumanoidRootPart") then
             local targetHead = targetChar.Head
@@ -418,12 +435,9 @@ RunService.RenderStepped:Connect(function()
             local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             
             if myHRP then
-                -- 1. Rivals Anti-Cheat Uyumlu Kamera Takibi (İnsansı Geçiş Efekti)
                 local targetCFrame = CFrame.new(Camera.CFrame.Position, targetHead.Position)
                 Camera.CFrame = Camera.CFrame:Lerp(targetCFrame, Config.AimSmoothness)
                 
-                -- 2. Rivals Namlu Senkronizasyonu (Gövdeyi 3 Boyutlu Eksende Düşmana Çevirir)
-                -- Mermilerin Rivals sunucusunda hata vermeden tam hedefe gitmesini sağlar
                 local targetPosition = targetHRP.Position
                 myHRP.CFrame = CFrame.new(myHRP.Position, Vector3.new(targetPosition.X, myHRP.Position.Y, targetPosition.Z))
             end
@@ -431,11 +445,10 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Hitbox Extender (Rivals İçin Güvenli Sınır)
 CreateToggle(CombatPage, "Hitbox Extender (Rivals Safe)", "Hitbox", function() end)
 task.spawn(function()
     while true do task.wait(0.5)
-        if Config.Toggles.Hitbox then
+        if Config.Toggles.Hitbox and CurrentGame == "Rivals" then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= LocalPlayer and p.Team ~= LocalPlayer.Team and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
                     local hrp = p.Character.HumanoidRootPart
@@ -445,17 +458,18 @@ task.spawn(function()
                 end
             end
         else
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                    p.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
-                    p.Character.HumanoidRootPart.Transparency = 1
+            if CurrentGame == "Rivals" then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                        p.Character.HumanoidRootPart.Size = Vector3.new(2, 2, 1)
+                        p.Character.HumanoidRootPart.Transparency = 1
+                    end
                 end
             end
         end
     end
 end)
 
--- Auto Clicker Widget
 local ClickWidget = Instance.new("TextButton")
 ClickWidget.Size = UDim2.new(0, 45, 0, 45)
 ClickWidget.Position = UDim2.new(0.85, 0, 0.5, 0)
@@ -510,7 +524,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Çift Zıplama
 CreateToggle(PlayerPage, "Double Jump Engine", "DoubleJump", function() end)
 local hasDoubleJumped = false
 UserInputService.JumpRequest:Connect(function()
@@ -531,7 +544,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Fly Motoru
 CreateToggle(PlayerPage, "Fly Engine", "Fly", function() end)
 local flyGyro, flyVelocity
 RunService.RenderStepped:Connect(function()
@@ -562,7 +574,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Shiftlock Fix
 local ShiftlockButton = Instance.new("TextButton")
 ShiftlockButton.Size = UDim2.new(0, 50, 0, 50)
 ShiftlockButton.Position = UDim2.new(0.85, 0, 0.3, 0)
@@ -591,7 +602,6 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
--- Noclip Engine
 CreateToggle(PlayerPage, "Noclip Engine", "Noclip", function() end)
 RunService.Stepped:Connect(function()
     if Config.Toggles.Noclip and LocalPlayer.Character then
@@ -602,44 +612,49 @@ RunService.Stepped:Connect(function()
 end)
 
 -- ==========================================================
--- 🗺️ WORLD MODULE (RIVALS TAKIM DESTEKLİ ESP)
+-- 🗺️ WORLD MODULE (ESP & XRAY)
 -- ==========================================================
 
 CreateToggle(WorldPage, "Visual ESP Box", "ESP", function() end)
 local function CreateESP(player)
+    if ScreenGui:FindFirstChild(player.Name .. "_QeatESP") then return end
     local Box = Instance.new("BoxHandleAdornment")
-    Box.Name = "QeatESP"
+    Box.Name = player.Name .. "_QeatESP"
     Box.AlwaysOnTop = true
     Box.ZIndex = 5
     Box.Color3 = Color3.fromRGB(255, 215, 0)
     Box.Transparency = 0.4
-    Box.Adornee = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
     Box.Size = Vector3.new(4, 5.5, 1)
     Box.Parent = ScreenGui
     
-    player.CharacterAdded:Connect(function(char)
-        task.wait(0.5)
-        Box.Adornee = char:WaitForChild("HumanoidRootPart")
-    end)
+    local function updateAdornee(char)
+        if char then
+            local hrp = char:WaitForChild("HumanoidRootPart", 5)
+            if hrp then Box.Adornee = hrp end
+        end
+    end
+    updateAdornee(player.Character)
+    player.CharacterAdded:Connect(updateAdornee)
 end
+
 for _, p in ipairs(Players:GetPlayers()) do if p ~= LocalPlayer then CreateESP(p) end end
 Players.PlayerAdded:Connect(function(p) if p ~= LocalPlayer then CreateESP(p) end end)
 
 RunService.RenderStepped:Connect(function()
-    for _, adorn in ipairs(ScreenGui:GetChildren()) do
-        if adorn.Name == "QeatESP" then 
-            local ply = Players:GetPlayerFromCharacter(adorn.Adornee and adorn.Adornee.Parent)
-            -- Sadece karşı takımdakileri ESP'de göster (FPS performans artışı sağlar)
-            if ply and ply.Team ~= LocalPlayer.Team then
-                adorn.Visible = Config.Toggles.ESP
-            else
-                adorn.Visible = false
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer then
+            local adorn = ScreenGui:FindFirstChild(p.Name .. "_QeatESP")
+            if adorn then
+                if CurrentGame == "Rivals" then
+                    adorn.Visible = Config.Toggles.ESP and (p.Team ~= LocalPlayer.Team)
+                else
+                    adorn.Visible = Config.Toggles.ESP
+                end
             end
         end
     end
 end)
 
--- X-Ray Vision
 local originalTransparencies = {}
 CreateToggle(WorldPage, "X-Ray Vision", "Xray", function(state)
     if state then
@@ -654,12 +669,164 @@ CreateToggle(WorldPage, "X-Ray Vision", "Xray", function(state)
     end
 end)
 
+-- ==========================================================
+-- 🔪 MM2 ÖZEL SEKMESİ (GELİŞMİŞ ROL TABANLI MOTOR)
+-- ==========================================================
+if CurrentGame == "MM2" then
+    local function CreateSectionTitle(parent, text)
+        local Title = Instance.new("TextLabel")
+        Title.Size = UDim2.new(1, -10, 0, 20)
+        Title.BackgroundTransparency = 1
+        Title.Text = "--- " .. text .. " ---"
+        Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+        Title.Font = Enum.Font.Code
+        Title.TextSize = 11
+        Title.Parent = parent
+    end
+
+    -- 🛡️ INNOCENT MODULE
+    CreateSectionTitle(MM2Page, "INNOCENT FEATURES")
+    CreateToggle(MM2Page, "Anti-Reset Safe Zone", "MM2SafeZone", function(state)
+        if state then
+            if not workspace:FindFirstChild("QeatSafePlatform") then
+                local Part = Instance.new("Part", workspace)
+                Part.Name = "QeatSafePlatform"
+                Part.Size = Vector3.new(30, 2, 30)
+                Part.Position = Vector3.new(0, 800, 0)
+                Part.Anchored = true
+                Part.Transparency = 0.4
+                Part.Color = Color3.fromRGB(255, 215, 0)
+                Part.Material = Enum.Material.Neon
+            end
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 805, 0)
+            end
+        else
+            local plat = workspace:FindFirstChild("QeatSafePlatform")
+            if plat then plat:Destroy() end
+        end
+    end)
+    CreateToggle(MM2Page, "Dynamic Role ESP", "MM2RoleESP", function() end)
+
+    -- 🔫 SHERIFF MODULE
+    CreateSectionTitle(MM2Page, "SHERIFF FEATURES")
+    CreateToggle(MM2Page, "Murderer Silent Aim", "MM2SheriffAim", function() end)
+    CreateToggle(MM2Page, "Counter Teleport & Shoot", "MM2CounterKill", function() end)
+
+    -- 🔴 MURDERER MODULE
+    CreateSectionTitle(MM2Page, "MURDERER FEATURES")
+    CreateToggle(MM2Page, "Kill Aura (Teleport Loop)", "MM2KillAura", function() end)
+    CreateToggle(MM2Page, "Highlight Sheriff (Green)", "MM2HighlightSheriff", function() end)
+
+    -- MM2 Ana Mantık Döngüsü (Rol Analizi ve Eşya Kontrolleri)
+    task.spawn(function()
+        while true do task.wait(0.1)
+            if not Config.Toggles.MM2RoleESP and not Config.Toggles.MM2HighlightSheriff and not Config.Toggles.MM2CounterKill and not Config.Toggles.MM2KillAura and not Config.Toggles.MM2SheriffAim then continue end
+            
+            local currentMurderer, currentSheriff
+            
+            -- Gerçek zamanlı rol tarayıcı
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character then
+                    if p.Character:FindFirstChild("Knife") or (p:FindFirstChild("Backpack") and p.Backpack:FindFirstChild("Knife")) then
+                        currentMurderer = p
+                    end
+                    if p.Character:FindFirstChild("Gun") or (p:FindFirstChild("Backpack") and p.Backpack:FindFirstChild("Gun")) then
+                        currentSheriff = p
+                    end
+                end
+            end
+
+            -- 1. Rol Bazlı ESP Renklendirmesi
+            if Config.Toggles.MM2RoleESP then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    local adorn = ScreenGui:FindFirstChild(p.Name .. "_QeatESP")
+                    if adorn then
+                        if p == currentMurderer then
+                            adorn.Color3 = Color3.fromRGB(255, 0, 0) -- Katil Kırmızı
+                        elseif p == currentSheriff then
+                            adorn.Color3 = Color3.fromRGB(0, 0, 255) -- Şerif Mavi
+                        else
+                            adorn.Color3 = Color3.fromRGB(255, 215, 0) -- Masum Sarı/Altın
+                        end
+                    end
+                end
+            end
+
+            -- 2. Katil Modu: Şerifi Yeşil Yapma Önceliği
+            if Config.Toggles.MM2HighlightSheriff and currentSheriff then
+                local adorn = ScreenGui:FindFirstChild(currentSheriff.Name .. "_QeatESP")
+                if adorn then adorn.Color3 = Color3.fromRGB(0, 255, 0) end
+            end
+
+            -- 3. Şerif Modu: Katil Bıçağı Çekince Arkasına Işınlanıp Vurma
+            if Config.Toggles.MM2CounterKill and currentMurderer and currentMurderer.Character and currentMurderer.Character:FindFirstChild("Knife") then
+                local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                local targetHRP = currentMurderer.Character:FindFirstChild("HumanoidRootPart")
+                if myHRP and targetHRP then
+                    myHRP.CFrame = targetHRP.CFrame * CFrame.new(0, 0, 4) -- Güvenli mesafe arkası
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                    task.wait(0.01)
+                    VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                end
+            end
+
+            -- 4. Katil Modu: Kill Aura (Tüm Masumları Işınlanarak Temizleme)
+            if Config.Toggles.MM2KillAura and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Knife") then
+                for _, p in ipairs(Players:GetPlayers()) do
+                    if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") and p.Character:FindFirstChild("Humanoid") and p.Character.Humanoid.Health > 0 then
+                        if p ~= currentSheriff or (currentSheriff and not currentSheriff.Character:FindFirstChild("Gun")) then -- Şerif silahlıysa risk alma, önce masumlar
+                            local myHRP = LocalPlayer.Character.HumanoidRootPart
+                            myHRP.CFrame = p.Character.HumanoidRootPart.CFrame * CFrame.new(0, 0, 1)
+                            task.wait(0.06) -- Anti-cheat lag koruması
+                            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, true, game, 1)
+                            VirtualInputManager:SendMouseButtonEvent(0, 0, 0, false, game, 1)
+                        end
+                    end
+                end
+            end
+        end
+    end)
+
+    -- Şerif İçin Katile Odaklanan Silent Aim Motoru
+    RunService.RenderStepped:Connect(function()
+        if Config.Toggles.MM2SheriffAim and CurrentGame == "MM2" then
+            local murdererPlayer
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p.Character and (p.Character:FindFirstChild("Knife") or (p:FindFirstChild("Backpack") and p.Backpack:FindFirstChild("Knife"))) then
+                    murdererPlayer = p
+                    break
+                end
+            end
+            if murdererPlayer and murdererPlayer.Character and murdererPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                local targetHRP = murdererPlayer.Character.HumanoidRootPart
+                local myHRP = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                if myHRP then
+                    Camera.CFrame = Camera.CFrame:Lerp(CFrame.new(Camera.CFrame.Position, targetHRP.Position), Config.AimSmoothness)
+                end
+            end
+        end
+    end)
+
+    -- Harita Değişimini İzleyen Döngü (Her Turda Safe Zone'a Işınlama Çözümü)
+    workspace.ChildAdded:Connect(function(child)
+        if Config.Toggles.MM2SafeZone then
+            task.wait(2.5) -- Haritanın ve karakterlerin yüklenmesini bekle
+            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(0, 805, 0)
+            end
+        end
+    end)
+end
+
+-- SYSTEM BUTTONS (World Sayfası Altı)
 CreateSysButton(WorldPage, " [>] Inject Infinite Yield", Color3.fromRGB(255, 165, 0), function()
     loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeY/infiniteyield/master/source'))()
 end)
 
 CreateSysButton(WorldPage, " [!] TERMINATE QEATHUB", Color3.fromRGB(255, 50, 50), function()
     for k, _ in pairs(Config.Toggles) do Config.Toggles[k] = false end
-    for obj, trans in pairs(originalTransparencies) do if obj and obj.Parent then obj.Transparency = trans end end
+    local plat = workspace:FindFirstChild("QeatSafePlatform")
+    if plat then plat:Destroy() end
     ScreenGui:Destroy()
 end)
